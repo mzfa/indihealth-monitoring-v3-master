@@ -1,0 +1,6 @@
+ALTER TABLE `absensi` ADD `request_absen_keluar` BOOLEAN NOT NULL DEFAULT FALSE AFTER `jam_keluar`;
+ALTER TABLE `absensi` ADD `is_req_acc` BOOLEAN NOT NULL DEFAULT FALSE AFTER `request_absen_keluar`;
+ALTER TABLE `absensi` CHANGE `request_absen_keluar` `request_absen_keluar` TIME NULL DEFAULT NULL;
+ALTER TABLE `absensi` ADD `is_read_toast` BOOLEAN NOT NULL DEFAULT FALSE AFTER `request_absen_keluar`;
+ALTER TABLE `absensi`  ADD `is_read` BOOLEAN NOT NULL DEFAULT FALSE  AFTER `request_absen_keluar`;
+ALTER TABLE `absensi` ADD `requested_absen_at` TIMESTAMP NULL DEFAULT NULL AFTER `request_absen_keluar`; 

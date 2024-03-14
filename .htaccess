@@ -1,0 +1,5 @@
+
+RewriteEngine on
+RewriteCond %{HTTP_HOST} ^monitoring\-v3\.indihealth\.com$
+RewriteRule ^/?$ "https\:\/\/monitoring\-v3\.indihealth\.com\/" [R=301,L]
+

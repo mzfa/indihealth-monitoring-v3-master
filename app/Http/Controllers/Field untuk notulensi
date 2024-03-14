@@ -1,0 +1,76 @@
+Field untuk notulensi
+1. Nama Projek [v]
+2. Judul Agenda [v]
+3. Roadmap aagenda [v]
+4. Notulensi. [v]
+5. Waktu meeting . [v]
+6  Button Save [v]
+7. Create by siapa [v]
+8. share link.[v]
+-----------
+Task Development
+1. Share link ke guest [v]
+2. Kalender[v]
+3. pilih tanggal dari kalender bulan ini[v]
+4. Catatan kesulitan dan solusi ketika sudah 100%[v]
+
+Task Maintenance
+1. Sama kaya task development
+2. field Leveling [v]
+3. field timing (menit)
+4. field yang order_by
+5. tampilkan semua user
+6. tanggal mengerjakan
+7. alasan terlambat
+8. notulensi mengingatkan fokus mengerjakan dan update Push Notification.
+9. koreksi nilai value (HR).
+10. bisa milih lebih dari 1 member eksekutor
+11. field start time sama end time
+
+Guest Modul[v]
+1. nama [v]
+2. Pt Apa[v]
+3. Email[v]
+4. Jabatan[v]
+5. Projek terkait[v]
+
+
+Akun Profile Programmer
+1. link github[v]
+2. link gitlab[v]
+3. link Bitbucket[v]
+
+Ticketing Maintenance (harus diaktifkan maintenance partner)
+1. Nama CLient
+2. Screenshot
+
+Modul karyawan
+1. tambah field tanggal join dan resign[v]
+2. No Telp[v]
+
+
+Namanya
+Monitoring and Report Indihealth
+Logo Aplikasi dibawahnya create by indihealth
+
+
+Notulensi
+1 . copy paste Data Notulensi
+
+Dashboard owner
+1. statistik semua
+2. Kurva S
+
+Dashboard Guest
+1. Error Undefined Name (di comment)
+
+level maintence
+tandai user sebagai
+1. CS Maintenance
+2. Leader Maintenance
+3. Eksekutor Maintenance
+
+COntact
+1. Customer Service
+2. Leader Development
+3. Programmer

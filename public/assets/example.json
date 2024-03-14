@@ -1,0 +1,17 @@
+[
+    {
+        name: "Example",
+        desc: "Lorem ipsum dolor sit amet.",
+        values: [ {
+        from: '2012-02-10',
+        to: '2012-04-03',
+        label: "Example Value",
+        desc: "Something",
+        customClass: "ganttRed",
+        dataObj: foo.bar[i]
+    } ]
+        id: 1,
+        cssClass: "redLabel"
+    },
+
+]

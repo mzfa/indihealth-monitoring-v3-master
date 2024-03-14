@@ -1,0 +1,1 @@
+<a href="javascript:void()" onclick="memberList({{$data->id}})">{{count($data->members)}} member</a>

@@ -1,0 +1,1 @@
+<a href="javascript::void()" onclick="showTicket({{$data->ticketing->id}})">{{empty($data->ticketing)?"-":$data->ticketing->no_ticket. " ". $data->ticketing->project->name." (".$data->ticketing->project->client.")"}}</a><i id="ticket-{{$data->ticketing->id}}" class="fas fa-spin fa-spinner" style="display: none;"></i>
