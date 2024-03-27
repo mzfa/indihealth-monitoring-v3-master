@@ -24,6 +24,7 @@
                  <option>-Pilih-</option>
                  <option value="S">Sakit</option>
                  <option value="I">Izin</option>
+                 <option value="PC">Izin Pulang Cepat</option>
              </select>
         </div>
         <div class="col-12"></div>

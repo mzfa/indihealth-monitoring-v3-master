@@ -33,6 +33,7 @@
                  <option>-Pilih-</option>
                  <option value="S" {{$data->jenis == "S" ? "selected":null}}>Sakit</option>
                  <option value="I" {{$data->jenis == "I" ? "selected":null}}>Izin</option>
+                 <option value="PC" {{$data->jenis == "PC" ? "selected":null}}>Izin Pulang Cepet</option>
              </select>
         </div>
         <div class="col-12"></div>

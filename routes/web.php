@@ -491,6 +491,7 @@ Route::group(['middleware' => ['auth']], function () {
 
                         Route::get('curriculum_vitae/{cv}', [App\Http\Controllers\PenggajianController::class, 'downloadCV'])->name('penggajian.cv');
                         Route::get('edit/{id}', [App\Http\Controllers\PenggajianController::class, 'edit'])->name('penggajian.edit');
+                        Route::get('detail/{id}/{periode}', [App\Http\Controllers\PenggajianController::class, 'detail'])->name('penggajian.detail');
                         Route::post('save', [App\Http\Controllers\PenggajianController::class, 'save'])->name('penggajian.save');
                         Route::post('update', [App\Http\Controllers\PenggajianController::class, 'update'])->name('penggajian.update');
                         Route::post('delete', [App\Http\Controllers\PenggajianController::class, 'delete'])->name('penggajian.hapus');

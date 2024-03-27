@@ -13,6 +13,7 @@ use App\Exports\AbsensiExport;
 use App\Http\Resources\AbsensiShow;
 use App\Http\Requests\AbsensiExportRequest;
 use App\Mail\MailAccAbsen;
+use Illuminate\Support\Facades\DB;
 use Mail;
 use Illuminate\Support\Str;
 use Log;
@@ -84,10 +85,42 @@ class AbsensiController extends Controller
 
         return JSon::response(200,'absensi',$data,[]);
     }
+    function getDistanceBetweenPointsNew($lat1, $lon1, $lat2, $lon2, $unit = 'miles') {
+        $radius = 6371; // Earth's radius in kilometers
+
+        // Calculate the differences in latitude and longitude
+        $delta_lat = $lat2 - $lat1;
+        $delta_lon = $lon2 - $lon1;
+
+        // Calculate the central angles between the two points
+        $alpha = $delta_lat / 2;
+        $beta = $delta_lon / 2;
+        // Use the Haversine formula to calculate the distance
+        $a = sin(deg2rad($alpha)) * sin(deg2rad($alpha)) + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin(deg2rad($beta)) * sin(deg2rad($beta));
+        $c = asin(min(1, sqrt($a)));
+        $distance = 2 * $radius * $c;
+        // Round the distance to four decimal places
+        $distance = round($distance, 4);
+        $meters = $distance * 1000;
+
+        return $meters; 
+    }
     public function doAbsen(Request $request)
     {
-
-        dd($request);
+        $data = DB::table('web_config_absensi')->where('web_config_id',1)->first();
+        if($data->status == 1){
+            $beda = $this->getDistanceBetweenPointsNew($data->long,$data->lat,$request->lat,$request->lng);
+            if($beda > $data->radius_kantor){
+                $data="Anda tidak dapat melakukan absen, karena jarak anda ke kantor masih ". $beda." Meter lagi";
+                return JSon::response(400,'absensi',[],$data);
+            }
+        }
+        if($data->status_absen_dirumah == 1){
+            if($beda > $data->radius_rumah){
+                $data="Anda tidak dapat melakukan absen, karena jarak anda ke rumah masih ". $beda." Meter lagi";
+                return JSon::response(400,'absensi',[],$data);
+            }
+        }
         if(empty(auth()->user()->karyawan_id))
         {
              $this->loggingAbsen('ABSENSI-FAIL (NO-BIND-KRY)',$request,'warning');
@@ -125,8 +158,7 @@ class AbsensiController extends Controller
                     $data = Absensi::create($this->paramsSelfAbsen($request));
                     $this->loggingAbsen('ABSENSI-MASUK',$request);
                 } else{
-
-                     return JSon::response(400,'absensi',[],"Anda sudah melakukan absensi.");
+                     return JSon::response(400,'absensi',[],"Anda sudah melakukan absensi, anda dapat kembali absen pulang ketika pukul ". $conf->keluar_start);
                 }
             } elseif(time() >= strtotime($conf->keluar_start) AND time() <= strtotime($conf->keluar_end))
             {
@@ -139,9 +171,11 @@ class AbsensiController extends Controller
                 } else{
                     $absen = $abs->first();
                     $this->loggingAbsen('ABSENSI-KELUAR',$request);
-                    $data = $abs->update($this->paramsSelfAbsen($request,true,  $absen ->tanggal." ".$absen->jam_masuk));
+                    $data = $abs->update($this->paramsSelfAbsen($request,true,  $absen->tanggal." ".$absen->jam_masuk));
                 }
 
+            }else{
+                return JSon::response(400,'absensi',[],"Periksa kembali jadwal kerja anda ");
             }
             $request->session()->forget('absen_token');
             return JSon::response(200,'absensi',$data,[]);

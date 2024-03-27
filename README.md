@@ -26,7 +26,7 @@
 
 <h3>Cara Install</h3>
 
-1. Clone dari master  ``git clone https://github.com/indihealth-2022/indihealth-monitoring-v3``
+1. Clone dari master 
 
 2. Buka folder projek (jika di linux gunakan perintah ``cd lokasi-projek``) tersebut lalu buka cmd
 

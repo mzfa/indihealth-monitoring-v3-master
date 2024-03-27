@@ -45,18 +45,18 @@
                 <div class="col-md-12">
                     <div class="form-group">
                         <div class="custom-control custom-switch">
-                            <input type="checkbox" class="custom-control-input" value="1" name="geofence"  id="toggle-geofence">
+                            <input type="checkbox" class="custom-control-input" value="1" name="geofence"  id="toggle-geofence" @if($data->status == 1) checked @endif>
                             <label class="custom-control-label" for="toggle-geofence">Aktifkan GeoFence</label>
                         </div>
                     </div>
                 </div>
             </div>
-            <div id="geofence-cfg" style="display:none;">
+            <div id="geofence-cfg" @if($data->status != 1) style="display:none;" @endif>
                 <div class="row">
                     
-                    <div class="col-md-6 col-xs-12" >
+                    <div class="col-md-6 col-xs-12">
                         <div class="custom-control custom-checkbox">
-                            <input class="custom-control-input" name="absen_rumah" type="checkbox" id="absen-rumah" value="1">
+                            <input class="custom-control-input" name="status_absen_dirumah" type="checkbox" id="absen-rumah" value="1" @if($data->status_absen_dirumah == 1) checked @endif>
                             <label for="absen-rumah" class="custom-control-label">Aktifkan Absensi dari Rumah Karyawan</label><br>
                             <small>Jika diaktifkan maka karyawan dapat absensi dari rumah.</small>
                         </div>
@@ -65,7 +65,7 @@
                                 <label>Radius Absensi dari rumah (meter)</label><br>
                             </div>
                             <div class="col-md-12 col-xs-12" >
-                                <input type="number" value="100" min="15" max="5000" id="radius" name="radius" class="form-control">
+                                <input type="number" value="{{ $data->radius_rumah }}" min="0" max="5000" id="radius_rumah" name="radius_rumah" class="form-control">
                             </div>
                         </div>
                     </div>
@@ -75,12 +75,24 @@
                     <div class="col-md-12">
                         <label>Radius Absensi dari lokasi (meter)</label><br>
                     </div>
-                    <div class="col-md-4 col-xs-12" >
-                        <input type="number" value="100" min="15" max="8000" id="radius" name="radius" class="form-control">
+                    <div class="col-md-12 col-xs-12" >
+                        <input type="number" value="{{ $data->radius_kantor }}" min="0" max="8000" id="radius_kantor" name="radius_kantor" class="form-control">
+                    </div>
+                    <div class="col-md-12">
+                        <label>Longitude</label><br>
+                    </div>
+                    <div class="col-md-12 col-xs-12" >
+                        <input type="text" id="long" name="long" value="{{ $data->long }}" class="form-control">
+                    </div>
+                    <div class="col-md-12">
+                        <label>Latitude</label><br>
+                    </div>
+                    <div class="col-md-12 col-xs-12" >
+                        <input type="text" id="lat" name="lat" value="{{ $data->lat }}" class="form-control">
                     </div>
                 </div>
                 
-                <div class="row">
+                {{-- <div class="row">
                     <div class="col-md-12">
                         <label>Pilih Alamat Tempat Bekerja</label>
                     </div>
@@ -95,7 +107,7 @@
                         </div>
                         
                     </div>
-                </div>
+                </div> --}}
             </div>
             
             <!--   <div class="row mt-3">

@@ -36,7 +36,8 @@
                     <th>Jabatan</th>
                     <th>Gaji Pokok</th>
                     <th>Potongan</th>
-                    <th>Aksi</th>
+                    <th>Total Terima</th>
+                    <th>Action</th>
                 </thead>
                 <tbody>
                     @foreach ($datanya as $item)
@@ -48,6 +49,7 @@
                         <td>Rp. {{ number_format($item['gaji_pokok']) }}</td>
                         <td>Rp. {{ number_format($item['potongan']) }}</td>
                         <td>Rp. {{ number_format($item['gaji_pokok'] - $item['potongan']) }}</td>
+                        <td><a href="{{ url('penggajian/detail/'.$item['id'].'/'.$periode) }}" class="btn btn-primary">Detail</a></td>
                     </tr>
                     @endforeach
                 </tbody>
@@ -60,60 +62,6 @@
 
 @section('javascript')
  <script type="text/javascript">
-        // $(function() {
-//                 $('#absenTable').DataTable({
-//                     "order": [[ 2, "asc" ]],
-//                     processing: true,
-//                     serverSide: true,
-//                     autoWidth:false,
-//                     "language": {
-//     "processing": "<i class='fas fa-spinner fa-spin fa-1x'></i> Sedang mengambil data..."
-//   },
-//                     ajax: "{{ route('penggajian.datatables')}}",
-//                     columns: [{
-//                             data: 'foto',
-//                             name: 'foto'
-//                         },
-//                         {
-//                             data: 'nip',
-//                             name: 'nip'
-//                         },{
-//                             data: 'nama_lengkap',
-//                             name: 'nama_lengkap'
-//                         },{
-//                             data: 'tempat_tanggal_lahir',
-//                             name: 'tempat_tanggal_lahir'
-//                         },
-//                         {
-//                             data: 'no_telp',
-//                             name: 'no_telp'
-//                         },
-//                         {
-//                             data: 'kelengkapan',
-//                             name: 'kelengkapan'
-//                         },
-//                         {
-//                             data: 'status_aktif',
-//                             name: 'status_aktif'
-//                         }, {
-//                             data: 'join_date',
-//                             name: 'join_date'
-//                         },
-//                         {
-//                             data: 'tipe',
-//                             name: 'tipe'
-//                         },
-//                          {
-//                             data: 'jabatan',
-//                             name: 'jabatan'
-//                         },
-//                          {
-//                             data: 'aksi',
-//                             name: 'aksi'
-//                         },
-//                     ]
-//                 });
-//             });
 
       </script>
 @endsection

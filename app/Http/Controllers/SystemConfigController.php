@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use Image;
 use Str;
 use Cache;
+use Illuminate\Support\Facades\DB;
 use Ramsey\Uuid\Uuid;
 
 class SystemConfigController extends Controller
@@ -60,29 +61,42 @@ class SystemConfigController extends Controller
         $cfg['autolock'] = WebConfig::where('config_name', 'CFG-AUTOLOCK')->first()->config_value;
         $cfg['logo'] = WebConfig::where('config_name', 'CFG-LOGO')->first()->config_value;
         $cfg['front_bg'] = WebConfig::where('config_name', 'CFG-FRONTBG')->first()->config_value;
+        $data = DB::table('web_config_absensi')->where('web_config_id',1)->first();
 
-        return view('config.sys_cfg')->with(['config' => (object)$cfg]);
+        return view('config.sys_cfg')->with(['config' => (object)$cfg, 'data' => $data]);
     }
 
     public function system_setting_save(Request $request)
     {
-        // dd($request->autolock);
-        $validate = [
-                            'autolock' => "nullable|boolean",
-                            // 'logo' => "mimes:jpg,png,gif|max:3100|nullable",
-                            // 'front_bg' => "mimes:jpg,png,gif|max:3100|nullable",
-                            ];
-        $this->validate($request, $validate);
-        if(empty($request->autolock))  
-        {
-            $autolock = 0;
+        // dd($request);
+        if($request->geofence == 1){
+          $validate = [
+            'radius_kantor' => "required",
+            'radius_rumah' => "required",
+            'long' => "required",
+            'lat' => "required",
+          ];
+          $this->validate($request, $validate);
+          $geofence = $request->geofence;
         }else{
-            $autolock = 1;
+          $geofence = 0;
         }
+        $data = [
+          'updated_by' => auth()->user()->name." (".auth()->user()->email.")",
+          'updated_at' => now(),
+          'long' => $request->long,
+          'lat' => $request->lat,
+          'radius_kantor' => $request->radius_kantor,
+          'radius_rumah' => $request->radius_rumah,
+          'status' => $geofence,
+          'status_absen_dirumah' => $request->status_absen_dirumah ?? 0,
+        ];
+        $status_dokumen_administrasi = "Aktif";
+        DB::table('web_config_absensi')->where(['web_config_id' => 1])->update($data);
 
-        WebConfig::where('config_name', 'CFG-AUTOLOCK')->update(['config_value' => $autolock]);
-        $data['jam_pulang'] = $request->jam_pulang;
-        $data['notify_minutes'] = $request->minutes;
+        // WebConfig::where('config_name', 'CFG-AUTOLOCK')->update(['config_value' => $autolock]);
+        // $data['jam_pulang'] = $request->jam_pulang;
+        // $data['notify_minutes'] = $request->minutes;
         $title = 'Config';
         $message['username'] = auth()->user()->name." (".auth()->user()->email.")";
         $message['messages'] = "Telah mengubah konfigurasi sistem menjadi ";

@@ -51,7 +51,7 @@ class IzinSakitController extends Controller
     public function submit_request(Request $request)
     {
          $validate = [
-                            'jenis' => ['required',"in:S,I"],
+                            'jenis' => ['required',"in:S,I,PC,PC"],
                             'start' => ['required','lte:end','date'],
                             'end' => ['required','gte:start','date'],
                             'file' => ['nullable','max:10100','mimes:jpg,jpeg,docx,doc,pdf'],
@@ -68,7 +68,7 @@ class IzinSakitController extends Controller
     {
          $validate = [
                             'karyawan_id' => ['required',"exists:\App\Models\Karyawan,id"],
-                            'jenis' => ['required',"in:S,I"],
+                            'jenis' => ['required',"in:S,I,PC,PC"],
                             'start' => ['required','lte:end','date'],
                             'end' => ['required','gte:start','date'],
                             'file' => ['nullable','max:10100','mimes:jpg,jpeg,docx,doc,pdf'],
@@ -86,7 +86,7 @@ class IzinSakitController extends Controller
     {
          $validate = [
                             'id' => ['required',"exists:\App\Models\IzinSakit"],
-                            'jenis' => ['required',"in:S,I"],
+                            'jenis' => ['required',"in:S,I,PC"],
                             'start' => ['required','lte:end','date'],
                             'end' => ['required','gte:start','date'],
                             'file' => ['nullable','max:10100','mimes:jpg,jpeg,docx,doc,pdf'],
@@ -105,7 +105,7 @@ class IzinSakitController extends Controller
          $validate = [
                             
                             'id' => ['required',"exists:\App\Models\IzinSakit"],
-                            'jenis' => ['required',"in:S,I"],
+                            'jenis' => ['required',"in:S,I,PC"],
                             'start' => ['required','lte:end','date'],
                             'end' => ['required','gte:start','date'],
                             'file' => ['nullable','max:10100','mimes:jpg,jpeg,docx,doc,pdf'],
@@ -233,6 +233,9 @@ class IzinSakitController extends Controller
                 } elseif(strtoupper($data->jenis) == "I")
                 {
                     $sts = "Izin";
+                }elseif(strtoupper($data->jenis) == "PC")
+                {
+                    $sts = "Izin Pulang Cepet";
                 }
                return $sts;
             }) 
@@ -265,6 +268,7 @@ class IzinSakitController extends Controller
     public function getIzinAll(Request $request)
     {
        $data = IzinSakit::get();
+       $sts = '';
        return \DataTables::of($data)
             ->editColumn("created_at", function ($data) {
                 return $data->created_at;
@@ -276,6 +280,9 @@ class IzinSakitController extends Controller
                 } elseif(strtoupper($data->jenis) == "I")
                 {
                     $sts = "Izin";
+                } elseif(strtoupper($data->jenis) == "PC")
+                {
+                    $sts = "Izin Pulang Cepet";
                 }
                return $sts;
             }) 
@@ -301,6 +308,9 @@ class IzinSakitController extends Controller
                 } elseif(strtoupper($data->jenis) == "I")
                 {
                     $sts = "Izin";
+                } elseif(strtoupper($data->jenis) == "PC")
+                {
+                    $sts = "Izin Pulang Cepet";
                 }
                return $sts;
             })
