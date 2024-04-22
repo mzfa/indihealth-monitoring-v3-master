@@ -111,7 +111,8 @@ class AbsensiController extends Controller
         if(isset($request->jenis)){
             $alasan = $request->data;
             $data = [
-                'created_at' => date('Y-m-d'),
+                'created_at' => now(),
+                'tgl_pengajuan' => date('Y-m-d'),
                 'karyawan_id' => auth()->user()->karyawan_id,
                 'isi_pesan' => $alasan,
             ];
@@ -121,7 +122,7 @@ class AbsensiController extends Controller
             if(auth()->user()->karyawan_id == null){
                 return 'belum_terhubung_karyawan';
             }
-            $absen = DB::table('alasan_absen')->where('karyawan_id',auth()->user()->karyawan_id)->where('created_at',date('Y-m-d'))->first();
+            $absen = DB::table('alasan_absen')->where('karyawan_id',auth()->user()->karyawan_id)->where('tgl_pengajuan',date('Y-m-d'))->first();
             if(!empty($absen)){
                 if($absen->acc_by !== null && $absen->status == 'terima'){
                     return 'berhasil';
@@ -147,7 +148,7 @@ class AbsensiController extends Controller
         $data = DB::table('web_config_absensi')->where('web_config_id',1)->first();
         if($data->status == 1){
             $beda = $this->getDistanceBetweenPointsNew($data->long,$data->lat,$request->lat,$request->lng);
-            $absen = DB::table('alasan_absen')->where('karyawan_id',auth()->user()->karyawan_id)->where('created_at',date('Y-m-d'))->first();
+            $absen = DB::table('alasan_absen')->where('karyawan_id',auth()->user()->karyawan_id)->where('tgl_pengajuan',date('Y-m-d'))->first();
             if(!empty($absen)){
                 if($absen->acc_by !== null && $absen->status == 'terima'){
                     

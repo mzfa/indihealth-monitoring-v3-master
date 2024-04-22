@@ -16,7 +16,7 @@ class AbsenDiluarController extends Controller
 
    public function index()
    {
-      $data = DB::table('alasan_absen')->select('alasan_absen.*','karyawan.nama_lengkap','karyawan.nip')->leftJoin('karyawan','karyawan.id','alasan_absen.karyawan_id')->where('alasan_absen.created_at', date('Y-m-d'))->get();
+      $data = DB::table('alasan_absen')->select('alasan_absen.*','karyawan.nama_lengkap','karyawan.nip')->leftJoin('karyawan','karyawan.id','alasan_absen.karyawan_id')->where('alasan_absen.tgl_pengajuan', date('Y-m-d'))->get();
       return view('absen_diluar.index', compact('data'));
    }
 

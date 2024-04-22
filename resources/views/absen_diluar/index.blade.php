@@ -20,6 +20,7 @@
                           <th>NIP</th>
                           <th>Nama Karyawan</th>
                           <th>Alasan</th>
+                          <th>Waktu Permintaan</th>
                           <th>Status</th>
                           <th>#</th>
                         </tr>
@@ -34,6 +35,7 @@
                         <td>{{ $item->nip }}</td>
                         <td>{{ $item->nama_lengkap }}</td>
                         <td>{{ $item->isi_pesan }}</td>
+                        <td>{{ date('d-m-Y H:i', strtotime($item->created_at)) }}</td>
                         <td>{{ $item->status ?? '-' }}</td>
                         <td>
                             @if ($item->status !== null)
