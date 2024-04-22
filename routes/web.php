@@ -453,6 +453,7 @@ Route::group(['middleware' => ['auth']], function () {
         |
         */
             Route::prefix('absen')->group(function () {
+                Route::get('cek_lokasi', [App\Http\Controllers\AbsensiController::class, 'cek_lokasi'])->name('absen.cek_lokasi');
                 Route::post('doAbsen', [App\Http\Controllers\AbsensiController::class, 'doAbsen'])->name('absen.doAbsen');
                 Route::group(['roles' => ['hrd', 'superadmin', 'owner']], function () {
                     Route::group(['middleware' => ['Tracking', 'RequireAbsen']], function () {
@@ -486,17 +487,17 @@ Route::group(['middleware' => ['auth']], function () {
                         Route::post('delete', [App\Http\Controllers\KaryawanController::class, 'delete'])->name('karyawan.hapus');
                         Route::get('/', [App\Http\Controllers\KaryawanController::class, 'index'])->name('karyawan');
                     });
-                    Route::prefix('penggajian')->group(function () {
-                        Route::get('create', [App\Http\Controllers\KaryawanController::class, 'create'])->name('penggajian.create');
+                    // Route::prefix('penggajian')->group(function () {
+                    //     Route::get('create', [App\Http\Controllers\KaryawanController::class, 'create'])->name('penggajian.create');
 
-                        Route::get('curriculum_vitae/{cv}', [App\Http\Controllers\PenggajianController::class, 'downloadCV'])->name('penggajian.cv');
-                        Route::get('edit/{id}', [App\Http\Controllers\PenggajianController::class, 'edit'])->name('penggajian.edit');
-                        Route::get('detail/{id}/{periode}', [App\Http\Controllers\PenggajianController::class, 'detail'])->name('penggajian.detail');
-                        Route::post('save', [App\Http\Controllers\PenggajianController::class, 'save'])->name('penggajian.save');
-                        Route::post('update', [App\Http\Controllers\PenggajianController::class, 'update'])->name('penggajian.update');
-                        Route::post('delete', [App\Http\Controllers\PenggajianController::class, 'delete'])->name('penggajian.hapus');
-                        Route::get('/', [App\Http\Controllers\PenggajianController::class, 'index'])->name('penggajian');
-                    });
+                    //     Route::get('curriculum_vitae/{cv}', [App\Http\Controllers\PenggajianController::class, 'downloadCV'])->name('penggajian.cv');
+                    //     Route::get('edit/{id}', [App\Http\Controllers\PenggajianController::class, 'edit'])->name('penggajian.edit');
+                    //     Route::get('detail/{id}/{periode}', [App\Http\Controllers\PenggajianController::class, 'detail'])->name('penggajian.detail');
+                    //     Route::post('save', [App\Http\Controllers\PenggajianController::class, 'save'])->name('penggajian.save');
+                    //     Route::post('update', [App\Http\Controllers\PenggajianController::class, 'update'])->name('penggajian.update');
+                    //     Route::post('delete', [App\Http\Controllers\PenggajianController::class, 'delete'])->name('penggajian.hapus');
+                    //     Route::get('/', [App\Http\Controllers\PenggajianController::class, 'index'])->name('penggajian');
+                    // });
                 });
                 Route::prefix('api')->group(function () {
                     Route::get('/fetchKaryawan', [App\Http\Controllers\KaryawanController::class, 'getDataKaryawan'])->name('karyawan.datatables');
@@ -512,6 +513,37 @@ Route::group(['middleware' => ['auth']], function () {
         |--------------------------------------------------------------------------
         |
         */
+            
+            Route::group(['roles' => ['superadmin','owner','hrd']], function () {
+                Route::prefix('absen_diluar')->group(function () {
+                    // Route::group(['middleware' => ['Tracking', 'RequireAbsen']], function () {
+                        Route::get('/', [App\Http\Controllers\AbsenDiluarController::class, 'index'])->name('absen_diluar');
+                        Route::get('/{status}/{id}', [App\Http\Controllers\AbsenDiluarController::class, 'status'])->name('absen_diluar.status');
+                    // });
+                });
+
+                Route::prefix('penggajian')->group(function () {
+                    // Route::group(['middleware' => ['Tracking', 'RequireAbsen']], function () {
+                        Route::get('/', [App\Http\Controllers\PenggajianController::class, 'index'])->name('penggajian');
+                        Route::get('/edit/{id}', [App\Http\Controllers\PenggajianController::class, 'edit'])->name('penggajian.edit');
+                        Route::get('/detail/{id}', [App\Http\Controllers\PenggajianController::class, 'detail'])->name('penggajian.detail');
+                        Route::get('/delete/{id}', [App\Http\Controllers\PenggajianController::class, 'delete'])->name('penggajian.delete');
+                        Route::get('/slip_gaji/{id}', [App\Http\Controllers\PenggajianController::class, 'slip_gaji'])->name('penggajian.slip_gaji');
+                        Route::post('/save', [App\Http\Controllers\PenggajianController::class, 'save'])->name('penggajian.save');
+                        Route::post('/pengajuan', [App\Http\Controllers\PenggajianController::class, 'pengajuan'])->name('penggajian.save');
+                        Route::post('/update', [App\Http\Controllers\PenggajianController::class, 'update'])->name('penggajian.update');
+                        Route::post('/disable', [App\Http\Controllers\PenggajianController::class, 'disable'])->name('penggajian.disable');
+                        Route::post('/enable', [App\Http\Controllers\PenggajianController::class, 'enable'])->name('penggajian.enable');
+
+                        Route::post('/show', [App\Http\Controllers\PenggajianController::class, 'show'])->name('penggajian.show');
+                    // });
+                    Route::prefix('api')->group(function () {
+                        Route::get('/fetchPenggajian', [App\Http\Controllers\PenggajianController::class, 'getDataPenggajian'])->name('penggajian.datatables');
+                    });
+                });
+            });
+
+
             Route::group(['roles' => ['superadmin']], function () {
                 Route::group(['middleware' => ['Tracking', 'RequireAbsen']], function () {
                     Route::post('absensi-services/acc-absen-keluar', [App\Http\Controllers\AbsensiController::class, 'acc_absen_keluar'])->name('services.notif.accAbsen');
@@ -575,6 +607,7 @@ Route::group(['middleware' => ['auth']], function () {
                             });
                         });
                     });
+                    
                 });
                 /*
             |--------------------------------------------------------------------------

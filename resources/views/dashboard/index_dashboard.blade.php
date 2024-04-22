@@ -18,19 +18,67 @@
 @section('javascript')
 @if(Agent::isDesktop() || Agent::isTablet())
 <script type="text/javascript">
-	
-		Webcam.set({
-			width: 500,
-			height: 375,
-			image_format: 'jpeg',
-			jpeg_quality: 90
-		});
-		
-		Webcam.attach( '#cam_absensi' );
+
+
+	$(document).ready(function() {
+		$.ajax({ 
+            type : 'get',
+            url : "{{ url('absen/cek_lokasi')}}",
+            data:{'lat': localStorage.getItem("lat"),lng: localStorage.getItem("lng")}, 
+            success:function(tampil){
+				console.log(tampil);
+				if(tampil == 'berhasil'){
+					Webcam.set({
+						width: 500,
+						height: 375,
+						image_format: 'jpeg',
+						jpeg_quality: 90
+					});
+					Webcam.attach( '#cam_absensi' );
+				}else if(tampil == 'belum_acc'){
+					Swal.fire({
+						title: 'Anda sudah melakukan pengajuan absen diluar tempat kerja. Silahkan hubungi admin untuk tindak lanjutnya',
+					});
+				}else if(tampil == 'ditolak'){
+					Swal.fire({
+						title: 'Mohon maaf untuk absen di luar kantor di tolak oleh admin',
+					});
+				}else if(tampil == 'belum_terhubung_karyawan'){
+					Swal.fire({
+						title: 'Akun anda belum terhubung dengan karyawan. Silahkan menghubungi admin',
+					});
+				}else{
+					Swal.fire({
+						title: 'Error!',
+						input: "text",
+						text: 'Anda sedang diluar daerah kerja',
+						icon: 'error',
+						confirmButtonText: 'Kirim'
+					}).then((result) => {
+						$.ajax({ 
+							type : 'get',
+							url : "{{ url('absen/cek_lokasi')}}",
+							data:{'data': result.value,'jenis': 'kirim_alasan'}, 
+							success:function(tampil){
+								console.log(result)
+								
+								if (result.isConfirmed) {
+									Swal.fire({
+									title: 'Alasan anda sudah terkirim. silahkan follow up ke admin',
+									showConfirmButton: false,
+									footer: '<a class="btn btn-primary" href="">Klik disini untuk merefresh halaman</a>'
+									});
+								}
+							}
+						});
+					});
+				}
+            } 
+        })
+	});
 </script>
 @else
 <script type="text/javascript">
-	
 		Webcam.set({
 			width: 375,
 			height: 500,

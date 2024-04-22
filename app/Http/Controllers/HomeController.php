@@ -23,6 +23,12 @@ class HomeController extends Controller
      */
     public function index()
     {
+        // $beda = app('App\Http\Controllers\OtherController')->getDistanceBetweenPointsNew($data->long,$data->lat,$request->lat,$request->lng);
+        // if($beda > $data->radius_kantor){
+        //     $data="Anda tidak dapat melakukan absen, karena jarak anda ke kantor masih ". $beda." Meter lagi";
+        //     return JSon::response(400,'absensi',[],$data);
+        // }
+        // dd('ok');
         $token = \Str::random(32);
         session(['absen_token' => $token]);
         return view('dashboard.index_dashboard');

@@ -3,318 +3,272 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\LinkedProject;
+use Hash;
+use App\Helpers\JSon;
 use App\Models\Karyawan;
-use App\Models\User;
-use App\Models\Jabatan;
-use App\Http\Requests\KaryawanCreateRequest;
-use App\Http\Requests\KaryawanUpdateRequest;
-use App\Http\Requests\KaryawanDeleteRequest;
-use App\Http\Resources\KaryawanSelect;
-use DB;
-use Illuminate\Support\Facades\Crypt;
-use Image;
-use Str;
-use Ramsey\Uuid\Uuid;
+use App\Models\Penggajian;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redirect;
 
 class PenggajianController extends Controller
 {
-  public function index()
-  {
-    $data = Karyawan::orderBy('created_at', 'DESC')->get();
-    $datanya = [];
-    $tanggal_awal = date("Y-m-01");
-    $periode = date('2023-12');
-    if (isset($_GET['periode'])) {
-      $periode = $_GET['periode'];
-    }
-    $tanggal_akhir = date("Y-m-t", strtotime($periode));
 
-    $jsonString = file_get_contents(storage_path('app/config/penggajian.json'));
-    $dataJson = json_decode($jsonString, true);
-    $gaji_pokok = $dataJson['gaji_pokok'];
-
-    $tanggalan = '';
-    $total_hari = 0;
-    for ($i = 1; $i <= 31; $i++) {
-      $tgl = $periode . '-' . sprintf('%02d', $i);
-      $hari = date('l', strtotime($tgl));
-      if ($hari != "Sunday" && $hari != "Saturday") {
-        $tanggalan .= "'$tgl',";
-        $total_hari += 1;
+   public function index()
+   {
+      if(auth()->user()->role_id == 5){
+         $penggajian = DB::table('penggajian')->where('is_delete', 0)->where('status_penggajian', 'Diajukan')->get();
+      }else{
+         $penggajian = DB::table('penggajian')->where('is_delete', 0)->get();
       }
-      if ($tgl == $tanggal_akhir) {
-        break;
-      }
-    }
-    $tanggalan = substr($tanggalan, 0, -1);
-    foreach ($data as $item) {
-      $absen = DB::select("SELECT * FROM absensi WHERE karyawan_id = '$item->id' and tanggal in ($tanggalan)");
-      $total_absen = 0;
-      foreach ($absen as $item2) {
-        $total_absen += 1;
-      }
-      $potongan = ($total_hari - $total_absen) * $dataJson['potongan_absen'];
-      $datanya[] = [
-        'id' => Crypt::encrypt($item->id),
-        'nip' => $item->nip,
-        'nama_lengkap' => $item->nama_lengkap,
-        'ttl' => $item->tempat_lahir . ', ' . date('d-m-Y', strtotime($item->tanggal_lahir)),
-        'jabatan' => $item->jabatan->nama,
-        'potongan' => $potongan,
-        'gaji_pokok' => $gaji_pokok,
-      ];
-    }
-    return view('penggajian.index', compact('datanya','periode'));
-  }
+      return view('penggajian.index', compact('penggajian'));
+   }
 
-  public function create()
-  {
-    $jabatan = Jabatan::orderBy('nama', 'ASC')->get();
-    return view('penggajian.create')->with(['jabatan' => $jabatan]);
-  }
-
-  public function delete(KaryawanDeleteRequest $request)
-  {
-    Karyawan::where('id', $request->id)->delete();
-    return redirect()->back()->with(['message_success' => "Berhasil menghapus Karyawan"]);
-  }
-  public function detail($id,$periode)
-  {
-    $id = Crypt::decrypt($id);
-    $kry = Karyawan::where('id', $id)->first();
-    $tanggal_awal = date("Y-m-01");
-    $tanggal_akhir = date("Y-m-t", strtotime($periode));
-
-    $jsonString = file_get_contents(storage_path('app/config/penggajian.json'));
-    $dataJson = json_decode($jsonString, true);
-    $gaji_pokok = $dataJson['gaji_pokok'];
-    if (empty($kry)) {
-      return abort(404);
-    }
-
-    $tanggalan = '';
-    $total_hari = 0;
-    for ($i = 1; $i <= 31; $i++) {
-      $tgl = $periode . '-' . sprintf('%02d', $i);
-      $hari = date('l', strtotime($tgl));
-      if ($hari != "Sunday" && $hari != "Saturday") {
-        $tanggalan .= "'$tgl',";
-        $total_hari += 1;
-      }
-      if ($tgl == $tanggal_akhir) {
-        break;
-      }
-    }
-    $tanggalan = substr($tanggalan, 0, -1);
-
-    $absen = DB::select("SELECT * FROM absensi WHERE karyawan_id = '$id' and tanggal in ($tanggalan)");
-    $total_absen = 0;
-    foreach ($absen as $item2) {
-      $total_absen += 1;
-    }
-    $potongan = ($total_hari - $total_absen) * $dataJson['potongan_absen'];
-    $datanya = [
-      'id' => Crypt::encrypt($id),
-      'nip' => $kry->nip,
-      'no_npwp' => $kry->no_npwp,
-      'no_ktp' => $kry->no_ktp,
-      'tipe_karyawan' => $kry->tipe_karyawan,
-      'jabatan' => $kry->jabatan->name,
-      'nama_lengkap' => $kry->nama_lengkap,
-      'tempat_lahir' => $kry->tempat_lahir,
-      'tanggal_lahir' => $kry->tanggal_lahir,
-      'jabatan' => $kry->jabatan->nama,
-      'potongan' => $potongan,
-      'gaji_pokok' => $gaji_pokok,
-      'potongan_absen' => $dataJson['potongan_absen'],
-    ];
-
-    return view('penggajian.detail')->with([ 'data' => $datanya]);
-  }
-  public function edit($id)
-  {
-
-    $jabatan = Jabatan::orderBy('nama', 'ASC')->get();
-    $kry = Karyawan::where('id', $id)->first();
-    if (empty($kry)) {
-      return abort(404);
-    }
-    return view('penggajian.edit')->with(['jabatan' => $jabatan, 'data' => $kry]);
-  }
-
-  public function save(KaryawanCreateRequest $request)
-  {
-    Karyawan::create($this->params($request));
-    return redirect()->route('karyawan')->with(['message_success' => "Berhasil menambahkan karyawan"]);
-  }
-
-  public function update(KaryawanUpdateRequest $request)
-  {
-    Karyawan::where('id', $request->id)->update($this->params($request, true));
-    $msg = "Berhasil Mengubah data karyawan";
-    if ($request->resign_date != null) {
-      User::where('id', $request->id)->update(['is_disabled' => true]);
-      $msg .= " dan akun karyawan telah dinonaktifkan.";
-    }
-    return redirect()->route('karyawan')->with(['message_success' => $msg]);
-  }
-
-  public function getKaryawanSelect(Request $request)
-  {
-    $data = KaryawanSelect::collection(Karyawan::where('nama_lengkap', 'like', '%' . $request->search . '%')->whereNull('resign_date')->orderBy('nama_lengkap', 'ASC')->limit(10)->get());
-
-    return response()->json($data);
-  }
-
-  public function getDataPenggajian(Request $request)
-  {
-
-    if (!empty($request->tipe)) {
-      $data = Karyawan::where('tipe_karyawan', $request->tipe)->get();
-    } elseif (!empty($request->jabatan)) {
-      $jabatan = Jabatan::where('nama', $request->jabatan)->first();
-      $data = Karyawan::where('jabatan_id', $jabatan->id)->get();
-    } else {
+   public function detail($id)
+   {
+      // dump(auth()->user());
       $data = Karyawan::orderBy('created_at', 'DESC')->get();
-    }
-    return \DataTables::of($data)
-      ->editColumn("created_at", function ($data) {
-        return $data->created_at;
-      })
-      ->addColumn('tempat_tanggal_lahir', function ($data) {
-        return $data->tempat_lahir . ', ' . $data->tanggal_lahir;
-      })
-      ->addColumn('jabatan', function ($data) {
-        return empty($data->jabatan) ? "-" : $data->jabatan->nama;
-      })
-      ->addColumn('kelengkapan', function ($data) {
-        return view('penggajian.partials.kelengkapan')->with(['data' => $data])->render();
-      })
-      ->addColumn('status_aktif', function ($data) {
-        return (!empty($data->resign_date) ? "<span class='badge badge-danger'>Non-Aktif</span>" : "<span class='badge badge-success'>Aktif</span>");
-      })
-      ->editColumn('join_date', function ($data) {
-        return $data->join_date . "<br><small>" . \Carbon\Carbon::parse($data->join_date . ' 00:00:00')->diffForHumans(['long' => false, 'parts' => 2]) . "<br> </small> ";
-      })
-      ->addColumn('tipe', function ($data) {
-        return empty($data->tipe_karyawan) ? "-" : $data->tipe_karyawan;
-      })
-      ->addColumn('aksi', function ($data) {
-        return view('penggajian.partials.aksi')->with(['data' => $data])->render();
-      })
-      ->editColumn('foto', function ($data) {
-        return view('penggajian.partials.foto')->with(['data' => $data])->render();
-      })
-      ->rawColumns(['aksi', 'foto', 'kelengkapan', 'join_date', 'status_aktif'])
-      ->make(true);
-  }
-  public function downloadCV($cv)
-  {
-    $filename = $cv;
-    $path = storage_path('app/cv/' . $cv);
-    if (!file_exists($path)) {
-      return abort(404);
-    }
-    return \Response::make(file_get_contents($path), 200, [
-      'Content-Type' => 'application/pdf',
-      'Content-Disposition' => 'inline; filename="' . $filename . '"'
-    ]);
-  }
-  private function params($request, $updated = false)
-  {
-    if (!empty($request->file('img'))) {
-      $img = $this->imageProcessing($request->file('img'));
-    } else {
-      $img = 'default.jpg';
-    }
-    if (!empty($request->file('cv'))) {
-      $cv = $this->CVProcessing($request->file('cv'), $request->nama_lengkap);
-    } else {
-      $cv = null;
-    }
-    if ($updated) {
-      $params = [
-        'nip'           => $request->nip,
-        'nama_lengkap'  => $request->nama_lengkap,
-        'no_ktp'  => $request->no_ktp,
-        'no_npwp'  => $request->no_npwp,
-        'tempat_lahir'  => $request->tempat_lahir,
-        'tanggal_lahir' => $request->tanggal_lahir,
-        'no_telp'       => $request->no_telp,
-        'tipe_karyawan' => $request->tipe_karyawan,
-        'github_link'   => $request->github_link,
-        'bitbucket_link' => $request->bitbucket_link,
-        'gitlab_link'   => $request->gitlab_link,
-        'join_date'     => $request->join_date,
-        'resign_date'   => $request->resign_date,
-        'jabatan_id'    => $request->jabatan,
-        'updated_by'    => auth()->user()->id,
-      ];
-      if (!empty($request->file('img'))) {
-        $params['foto'] = $img;
+      $datanya = [];
+      $tanggal_awal = date("Y-m-01");
+      $periode = date('2023-12');
+      if (isset($_GET['periode'])) {
+         $periode = $_GET['periode'];
       }
-      if (!empty($request->file('cv'))) {
+      $tanggal_akhir = date("Y-m-t", strtotime($periode));
 
-        $params['cv'] = $cv;
+      $jsonString = file_get_contents(storage_path('app/config/penggajian.json'));
+      $dataJson = json_decode($jsonString, true);
+      $gaji_pokok = $dataJson['gaji_pokok'];
+
+      $tanggalan = '';
+      $total_hari = 0;
+      for ($i = 1; $i <= 31; $i++) {
+         $tgl = $periode . '-' . sprintf('%02d', $i);
+         $hari = date('l', strtotime($tgl));
+         if ($hari != "Sunday" && $hari != "Saturday") {
+            $tanggalan .= "'$tgl',";
+            $total_hari += 1;
+         }
+         if ($tgl == $tanggal_akhir) {
+            break;
+         }
       }
-    } else {
-      $params = [
-        'nip'           => $request->nip,
-        'nama_lengkap'  => $request->nama_lengkap,
-        'no_ktp'  => $request->no_ktp,
-        'no_npwp'  => $request->no_npwp,
-        'tempat_lahir'  => $request->tempat_lahir,
-        'tanggal_lahir' => $request->tanggal_lahir,
-        'no_telp'       => $request->no_telp,
-        'tipe_karyawan' => $request->tipe_karyawan,
-        'jabatan_id'    => $request->jabatan,
-        'github_link'   => $request->github_link,
-        'bitbucket_link' => $request->bitbucket_link,
-        'gitlab_link'   => $request->gitlab_link,
-        'join_date'     => $request->join_date,
-        'resign_date'   => $request->resign_date,
-        'foto'          => $img,
-        'cv'          => $cv,
-        'updated_by'    => auth()->user()->id,
+      $tanggalan = substr($tanggalan, 0, -1);
+      foreach ($data as $item) {
+         $absen = DB::select("SELECT * FROM absensi WHERE karyawan_id = '$item->id' and tanggal in ($tanggalan)");
+         $total_absen = 0;
+         foreach ($absen as $item2) {
+            $total_absen += 1;
+         }
+         $data_penggajian = DB::select("SELECT * FROM penggajian_detail WHERE karyawan_id = '$item->id' and penggajian_id='$id'");
+         // echo "SELECT * FROM penggajian_detail WHERE karyawan_id = '$item->id' and penggajian_id='$id'";
+         // dd($data_penggajian);
+         $potongan = ($total_hari - $total_absen) * $dataJson['potongan_absen'];
+         $datanya[] = [
+            'id' => $item->id,
+            'penggajian_detail_id' => $data_penggajian[0]->id ?? '',
+            'status_penggajian' => $data_penggajian[0]->status_gaji ?? 'Belum di ajukan',
+            'nip' => $item->nip,
+            'nama_lengkap' => $item->nama_lengkap,
+            'ttl' => $item->tempat_lahir . ', ' . date('d-m-Y', strtotime($item->tanggal_lahir)),
+            'jabatan' => $item->jabatan->nama,
+            'potongan' => $data_penggajian[0]->potongan ?? $potongan,
+            'gaji_pokok' => $gaji_pokok,
+            'total_terima' => $data_penggajian[0]->total_terima ?? $gaji_pokok - $potongan,
+         ];
+      }
+      $data = DB::table('penggajian_detail')->where('id', $id)->get();
+      return view('penggajian.detail', compact('datanya','data','id'));
+   }
+
+   public function show(Request $request)
+   {
+      $validate = [
+         'id' => "required|exists:\App\Models\penggajian,id",
       ];
-    }
-    return $params;
-  }
+      $this->validate($request, $validate);
+      $data['data'] = Penggajian::where('id', $request->id)->first();
+      $data['messages'] = "Sukses menampilkan penggajian";
 
-  private function imageProcessing($file)
-  {
-    $uuid = Uuid::uuid4();
-    $file = $file;
-    $ext =  $file->getClientOriginalExtension();
-    $rand = Str::random(8);
-    $imgname = 'profile-' . date('Ymd') . "_" . $uuid->toString() . '.' . $ext;
 
-    $dest_path = storage_path('app/karyawan/');
-    if (!is_dir($dest_path)) {
-      mkdir($dest_path, 770);
-    }
+      return JSon::response(200, 'penggajian', $data, []);
+   }
 
-    Image::make($file->getRealPath())
-      ->resize(1000, null, function ($constraint) {
-        $constraint->aspectRatio();
-        $constraint->upsize();
-      })
-      ->save($dest_path . "/" . $imgname, 75);
-    return $imgname;
-  }
-  private function CVProcessing($file, $name)
-  {
+   public function save(Request $request)
+   {
+      $validate = [
+         'nama_penggajian' => "required",
+         'keterangan' => "required",
+      ];
+      $this->validate($request, $validate);
 
-    $file = $file;
-    $ext =  $file->getClientOriginalExtension();
-    $rand = Str::random(10);
-    $cvname = 'CV-' . date("Y-m-d") . "_" . strtr($name, ' ', '-') . "_" . md5($rand) . "." . $ext;
+      $data = [
+         'created_at' => now(),
+         'nama_penggajian' => $request->nama_penggajian,
+         'keterangan' => $request->keterangan,
+         'status_penggajian' => '-',
+      ];
 
-    $dest_path = storage_path('app/cv');
-    if (!is_dir($dest_path)) {
-      mkdir($dest_path, 770);
-    }
-    $file->move($dest_path, $cvname);
-    return $cvname;
-  }
+      DB::table('penggajian')->insert($data);
+
+      return Redirect::back()->with(['success' => 'Berhasil menyimpan penggajian!']);
+   }
+   public function pengajuan(Request $request)
+   {
+      // dd($request);
+      if ($request->form_jenis == 'insert') {
+         $data = [];
+         foreach($request->karyawan_id as $key => $item){
+            $data[] = [
+               'penggajian_id' => $request->id,
+               'karyawan_id' => $item,
+               'gaji_pokok' => $request->gaji_pokok[$key],
+               'potongan' => $request->potongan[$key],
+               'total_terima' => $request->total_terima[$key],
+               'status_gaji' => 'diproses',
+               'updated_by' => auth()->user()->id,
+            ];
+         }
+         DB::table('penggajian_detail')->insert($data);
+         $data = [
+            'status_penggajian' => 'Diajukan',
+         ];
+         DB::table('penggajian')->where(['id' => $request->id])->update($data);
+         return Redirect::back()->with(['success' => 'Berhasil mengajukan penggajian!']);
+      }elseif ($request->form_jenis == 'acc') {
+         foreach($request->status_gaji as $key => $item){
+            if($request->status == 'terima'){
+               $status_gaji = 'diterima';
+            }else{
+               $status_gaji = 'ditolak';
+            }
+            // dd($status_gaji);
+            $data = [
+               'status_gaji' => $status_gaji,
+               'updated_by' => auth()->user()->id,
+            ];
+            DB::table('penggajian_detail')->where(['id' => $item])->update($data);
+         }
+         return Redirect::back()->with(['success' => 'Penggajian berhasil '.$status_gaji]);
+      }else{
+         foreach($request->karyawan_id as $key => $item){
+            $data = [
+               'potongan' => $request->potongan[$key],
+               'total_terima' => $request->total_terima[$key],
+               'status_gaji' => 'diperbaiki',
+               'updated_by' => auth()->user()->id,
+            ];
+            // dd($data,$request->penggajian_detail_id[$key]);
+            DB::table('penggajian_detail')->where(['id' => $request->penggajian_detail_id[$key]])->update($data);
+         }
+         return Redirect::back()->with(['success' => 'Penggajian berhasil diperbaiki!']);
+
+
+      }
+
+   }
+
+   public function edit($id)
+   {
+      // return('ok');
+      $text = "Data tidak ditemukan";
+      if ($data = DB::select("SELECT * FROM penggajian WHERE id='$id'")) {
+         $text =
+            '<div class="mb-3">' .
+            '<label for="staticEmail" class="form-label">Nama Penggajian</label>' .
+            '<input type="text" class="form-control" id="nama_penggajian" name="nama_penggajian" value="' . $data[0]->nama_penggajian . '" required>' .
+            '</div>' .
+            '<div class="mb-3">' .
+            '<label for="staticEmail" class="form-label">Keterangan</label>' .
+            '<input type="text" class="form-control" id="keterangan" name="keterangan" value="' . $data[0]->keterangan . '" required>' .
+            '</div>' .
+            '<input type="hidden" class="form-control" id="penggajian_id" name="penggajian_id" value="' . $data[0]->id . '" required>';
+      }
+      return $text;
+      // return view('progress.edit');
+   }
+
+   public function update(Request $request)
+   {
+      $validate = [
+         'nama_penggajian' => "required",
+         'keterangan' => "required",
+      ];
+      $this->validate($request, $validate);
+
+      $data = [
+         'created_at' => now(),
+         'nama_penggajian' => $request->nama_penggajian,
+         'keterangan' => $request->keterangan,
+         'updated_by' => auth()->user()->id,
+      ];
+      $penggajian_id = $request->penggajian_id;
+      DB::table('penggajian')->where(['id' => $penggajian_id])->update($data);
+
+      return Redirect::back()->with(['success' => 'Data Berhasil Di Ubah!']);
+      // return JSon::response(200, 'penggajian', $data, []);
+   }
+   public function delete($id)
+   {
+      $data = [
+         'is_delete' => 1,
+      ];
+      DB::table('penggajian')->where(['id' => $id])->update($data);
+
+      return Redirect::back()->with(['success' => 'Data Berhasil Di Ubah!']);
+      // return JSon::response(200, 'penggajian', $data, []);
+   }
+   public function slip_gaji($id)
+   {
+      $data = DB::table('penggajian_detail')->select('penggajian_detail.*','penggajian.nama_penggajian','karyawan.nama_lengkap','karyawan.tempat_lahir','karyawan.tanggal_lahir','karyawan.no_npwp','karyawan.nip','karyawan.no_ktp','karyawan.tipe_karyawan','karyawan.jabatan_id')->leftJoin('penggajian', 'penggajian_detail.penggajian_id', 'penggajian.id')->leftJoin('karyawan', 'penggajian_detail.karyawan_id', 'karyawan.id')->where(['penggajian_detail.id' => $id])->first();
+      // dd($data);
+      return view('penggajian.slip_gaji', compact('data','id'));
+      // return JSon::response(200, 'penggajian', $data, []);
+   }
+
+   public function getDatapenggajian(Request $request)
+   {
+
+      $data = Penggajian::get();
+      return \DataTables::of($data)
+         ->editColumn("created_at", function ($data) {
+            return $data->created_at;
+         })
+         ->addColumn('status', function ($data) {
+            if ($data->is_banned && !empty($data->is_delete)) {
+               return "<span class='badge badge-warning'>Non-aktif</span>";
+            } elseif (!$data->is_banned && !empty($data->is_delete)) {
+               return "<span class='badge badge-success'>Aktif</span>";
+            } elseif (empty($data->is_delete)) {
+               return "<span class='badge badge-light'>Belum diaktifasi</span>";
+            }
+         })
+         ->addColumn('aksi', function ($data) {
+            return view('penggajian.partials.aksi')->with(['data' => $data])->render();
+         })
+         ->rawColumns(['aksi', 'status'])
+         ->make(true);
+   }
+   private function countProject($id)
+   {
+      return LinkedProject::where('penggajian_id', $id)->count();
+   }
+   private function params($request)
+   {
+      $params = [
+         'name'                  => $request->name,
+         'nama_perusahaan'       => $request->nama_perusahaan,
+         'jabatan'            => $request->jabatan,
+         'username'             => $request->username,
+         'email'                => $request->email,
+         'no_telp'             => $request->no_telp,
+         'updated_by'          => auth()->user()->id,
+      ];
+
+      if (!empty($request->password)) {
+         $params['password'] = Hash::make($request->password);
+      }
+
+      return $params;
+   }
 }

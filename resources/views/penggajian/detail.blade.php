@@ -1,137 +1,143 @@
 @extends('layouts/master_dashboard')
-@section('title','Kelola  Penggajian')
+@section('title', 'Detail Penggajian')
 @section('content')
 
-<div class="container">
-    <div class="card" id="printableArea">
-        <div class="card-header">
-            BUKTI GAJI
-            <strong>01/01/01/2018</strong>
-            <span class="float-right"> <strong>Waktu Cetak : </strong> {{ date('l d-F-Y H:i:s') }}</span>
-
+    <div class="row">
+        <div class="col-12">
+            @error('start_date')
+                <div class="alert alert-danger">{{ $message }}</div>
+            @enderror
+            @error('end_date')
+                <div class="alert alert-danger">{{ $message }}</div>
+            @enderror
         </div>
-        <div class="card-body">
-            <div class="row mb-4">
-                <div class="col-sm-6">
-                    <table>
-                        <tr>
-                            <th><p>Nama Lengkap </p></th>
-                            <th> <p> : </p></th>
-                            <td><p>{{ $data['nama_lengkap'] }}</p></td>
-                        </tr>
-                        <tr>
-                            <th><p>Tempat Lahir </p></th>
-                            <th> <p> : </p></th>
-                            <td><p>{{ $data['tempat_lahir'] }}</p></td>
-                        </tr>
-                        <tr>
-                            <th><p>Tanggal Lahir </p></th>
-                            <th> <p> : </p></th>
-                            <td><p>{{ date('d-M-Y', strtotime($data['tanggal_lahir'])) }}</p></td>
-                        </tr>
-                        <tr>
-                            <th><p>No NPWP </p></th>
-                            <th> <p> : </p></th>
-                            <td><p>{{ $data['no_npwp'] }}</p></td>
-                        </tr>
-                    </table>
-                </div>
-                <div class="col-sm-6">
-                    <table>
-                        <tr>
-                            <th><p>NIP </p></th>
-                            <th> <p> : </p></th>
-                            <td><p>{{ $data['nip'] }}</p></td>
-                        </tr>
-                        <tr>
-                            <th><p>NO KTP </p></th>
-                            <th> <p> : </p></th>
-                            <td><p>{{ $data['no_ktp'] }}</p></td>
-                        </tr>
-                        <tr>
-                            <th><p>Tipe Karyawan </p></th>
-                            <th> <p> : </p></th>
-                            <td><p>{{ $data['tipe_karyawan'] }}</p></td>
-                        </tr>
-                        <tr>
-                            <th><p>Jabatan </p></th>
-                            <th> <p> : </p></th>
-                            <td><p>{{ $data['jabatan'] }}</p></td>
-                        </tr>
-                    </table>
-                </div>
-
-
-
-            </div>
-
-            <div class="table-responsive-sm">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th class="center">#</th>
-                            <th>Item</th>
-                            <th>Keterangan</th>
-                            <th class="right">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="center">1</td>
-                            <td class="left strong">Gaji Pokok</td>
-                            <td class="left">Gaji Pokok Pegawai</td>
-                            <td class="right">Rp. {{ number_format($data['gaji_pokok']) }}</td>
-                        </tr>
-                        <tr>
-                            <td class="center">2</td>
-                            <td class="left strong">Potongan</td>
-                            <td class="left">Potongan Absensi sebanyak </td>
-                            <td class="right">Rp. {{ number_format($data['potongan']) }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="row">
-                <div class="col-lg-4 col-sm-5">
-
-                </div>
-
-                <div class="col-lg-4 col-sm-5 ml-auto">
-                    <table class="table table-clear">
+        
+        <div class="col-12">
+            <form action="{{ url('penggajian/pengajuan') }}" method="post">
+                @csrf
+                <input type="hidden" name="id" value="{{ $id }}">
+                <div class="table-responsive">
+                    <table class="table  table-bordered table-hover">
+                        <thead>
+                            @if (auth()->user()->role_id == 5)
+                                <th>#</th>                         
+                            @endif
+                            <th>NIP</th>
+                            <th>Nama Karyawan</th>
+                            <th>Tempat Tanggal Lahir</th>
+                            <th>Jabatan</th>
+                            <th>Gaji Pokok</th>
+                            <th>Potongan</th>
+                            <th>Total Terima</th>
+                            <th>Status</th>
+                        </thead>
                         <tbody>
+                            @foreach ($datanya as $item)
+                            <input type="hidden" name="karyawan_id[]" value="{{ $item['id'] }}">
+                            <input type="hidden" name="penggajian_detail_id[]" value="{{ $item['penggajian_detail_id'] }}">
+                            @if (!empty($item['penggajian_detail_id']))
+                                @if (auth()->user()->role_id == 5)
+                                    <input type="hidden" name="form_jenis" value="acc">
+                                @else
+                                    <input type="hidden" name="form_jenis" value="update">
+                                @endif
+                            @else
+                                <input type="hidden" name="form_jenis" value="insert">
+                            @endif
                             <tr>
-                                <td class="left">
-                                    <strong>Total</strong>
-                                </td>
-                                <td class="right">
-                                    <strong>Rp. {{ number_format($data['gaji_pokok']- $data['potongan']) }}</strong>
+                                @if (auth()->user()->role_id == 5)
+                                    <th><input type="checkbox" name="status_gaji[]" value="{{ $item['penggajian_detail_id'] }}"></th>                         
+                                @endif
+                                <th>{{ $item['nip'] }}</th>
+                                <td>{{ $item['nama_lengkap'] }}</td>
+                                <td>{{ $item['ttl'] }}</td>
+                                <td>{{ $item['jabatan'] }}</td>
+                                <td><input class="form-control" required type="number" name="gaji_pokok[]" value="{{ $item['gaji_pokok'] }}" readonly></td>
+                                <td><input class="form-control" id="potongan_{{ $item['id'] }}" onkeyup="hitung({{ $item['id'] }})" required type="number" name="potongan[]" value="{{ $item['potongan'] }}" @if (auth()->user()->role_id == 5 || $item['status_penggajian'] == 'diterima') readonly @endif></td>
+                                <td><input class="form-control" id="total_terima_{{ $item['id'] }}" required type="number" name="total_terima[]" value="{{ $item['total_terima'] }}" @if(auth()->user()->role_id == 5 || $item['status_penggajian'] == 'diterima') readonly @endif></td>
+                                <td>
+                                    @if($item['status_penggajian'] == 'diterima')
+                                        <a target="_blank" href="{{ url('penggajian/slip_gaji/'.$item['penggajian_detail_id']) }}" class="badge badge-success">{{ $item['status_penggajian'] }}</a>
+                                    @elseif($item['status_penggajian'] == 'ditolak')
+                                        <a href="#" class="badge badge-danger">{{ $item['status_penggajian'] }}</a>
+                                    @else
+                                        <a href="#" class="badge badge-warning">{{ $item['status_penggajian'] }}</a>
+                                    @endif
                                 </td>
                             </tr>
+                            @endforeach
                         </tbody>
                     </table>
-
                 </div>
-
-            </div>
-            
+                <br>
+                @if (auth()->user()->role_id == 5)
+                    <div class="row">
+                        <div class="col-6">
+                            <button onclick="return confirm('Apakah anda yakn datanya sudah benar?')" name="status" value="terima" type="submit" class="btn btn-primary btn-block">Terima</button>
+                        </div>
+                        <div class="col-6">
+                            <button onclick="return confirm('Apakah anda yakn datanya sudah benar?')" name="status" value="tolak" type="submit" class="btn btn-danger btn-block">Tolak</button>
+                        </div>
+                    </div>
+                @else
+                    <button onclick="return confirm('Apakah anda yakn datanya sudah benar?')"  type="submit" class="btn btn-primary btn-block">@if(!empty($item['penggajian_detail_id'])) Perbaiki @else Buat @endif Pengajuan</button>
+                @endif
+            </form>
         </div>
     </div>
-    <input type="button" class="btn btn-primary btn-block" onclick="printDiv('printableArea')" value="Cetak Slip Gaji" />
-</div>
-
 @endsection
 
 @section('javascript')
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script type="text/javascript">
-        function printDiv(divId) {
-            var printContents = document.getElementById(divId).innerHTML;
-            var originalContents = document.body.innerHTML;
-
-            document.body.innerHTML = printContents;
-
-            window.print();
-
-            document.body.innerHTML = originalContents;
+        $(function() {
+            $('#penggajianTable').DataTable();
+        });
+        function edit(id){
+            $.ajax({ 
+                type : 'get',
+                url : "{{ url('penggajian/edit')}}/"+id,
+                success:function(tampil){
+                    $('#tampildata').html(tampil);
+                    $('#edit-penggajian').modal('show');
+                } 
+            })
         }
+        function hitung(id){
+            let gaji_pokok = "{{ $item['gaji_pokok'] }}";
+            let namavar0 = 'potongan_'+id;
+            let namavar1 = 'total_terima_'+id;
+            let potongan = document.getElementById(namavar0).value;
+            console.log(potongan);
+            document.getElementById(namavar1).value = gaji_pokok - potongan;
+        }
+
+        // $("input.form-control").each((i,ele)=>{
+        //     let clone=$(ele).clone(false)
+        //     clone.attr("type","text")
+        //     let ele1=$(ele)
+        //     // clone.val(Number(ele1.val()).toLocaleString("en"))
+        //     $(ele).after(clone)
+        //     $(ele).hide()
+        //     clone.mouseenter(()=>{
+
+        //         ele1.show()
+        //         clone.hide()
+        //     })
+        //     setInterval(()=>{
+        //         let newv=Number(ele1.val()).toLocaleString("en")
+        //         if(clone.val()!=newv){
+        //             clone.val(newv)
+        //         }
+        //     },10)
+
+        //     $(ele).mouseleave(()=>{
+        //         $(clone).show()
+        //         $(ele1).hide()
+        //     })
+            
+
+        // })
     </script>
 @endsection

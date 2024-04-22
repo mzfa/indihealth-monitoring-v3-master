@@ -105,14 +105,63 @@ class AbsensiController extends Controller
 
         return $meters; 
     }
+    public function cek_lokasi(Request $request)
+    {
+        // dd(auth()->user());
+        if(isset($request->jenis)){
+            $alasan = $request->data;
+            $data = [
+                'created_at' => date('Y-m-d'),
+                'karyawan_id' => auth()->user()->karyawan_id,
+                'isi_pesan' => $alasan,
+            ];
+            DB::table('alasan_absen')->insert($data);
+            return 'berhasil';
+        }else{
+            if(auth()->user()->karyawan_id == null){
+                return 'belum_terhubung_karyawan';
+            }
+            $absen = DB::table('alasan_absen')->where('karyawan_id',auth()->user()->karyawan_id)->where('created_at',date('Y-m-d'))->first();
+            if(!empty($absen)){
+                if($absen->acc_by !== null && $absen->status == 'terima'){
+                    return 'berhasil';
+                }elseif($absen->acc_by !== null && $absen->status == 'tolak'){
+                    return 'ditolak';
+                }else{
+                    return 'belum_acc';
+                }
+            }else{
+                $data = DB::table('web_config_absensi')->where('web_config_id',1)->first();
+                $beda = $this->getDistanceBetweenPointsNew($data->long,$data->lat,$request->lat,$request->lng);
+                // dd($beda);
+                if($beda > $data->radius_kantor){
+                    return 'false';
+                }else{
+                    return 'berhasil';
+                }
+            }
+        }
+    }
     public function doAbsen(Request $request)
     {
         $data = DB::table('web_config_absensi')->where('web_config_id',1)->first();
         if($data->status == 1){
             $beda = $this->getDistanceBetweenPointsNew($data->long,$data->lat,$request->lat,$request->lng);
-            if($beda > $data->radius_kantor){
-                $data="Anda tidak dapat melakukan absen, karena jarak anda ke kantor masih ". $beda." Meter lagi";
-                return JSon::response(400,'absensi',[],$data);
+            $absen = DB::table('alasan_absen')->where('karyawan_id',auth()->user()->karyawan_id)->where('created_at',date('Y-m-d'))->first();
+            if(!empty($absen)){
+                if($absen->acc_by !== null && $absen->status == 'terima'){
+                    
+                }else{
+                    if($beda > $data->radius_kantor){
+                        $data="Anda tidak dapat melakukan absen, karena jarak anda ke kantor masih ". $beda." Meter lagi";
+                        return JSon::response(400,'absensi',[],$data);
+                    }
+                }
+            }else{
+                if($beda > $data->radius_kantor){
+                    $data="Anda tidak dapat melakukan absen, karena jarak anda ke kantor masih ". $beda." Meter lagi";
+                    return JSon::response(400,'absensi',[],$data);
+                }
             }
         }
         if($data->status_absen_dirumah == 1){

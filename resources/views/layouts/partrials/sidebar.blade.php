@@ -66,6 +66,12 @@
 				<p>Data  Izin / Sakit</p>
 			</a>
 		</li>
+		<li class="nav-item item-sidebar">
+			<a href="{{route('absen_diluar')}}" title="On Development" class="nav-link {{Route::currentRouteName() == 'absen_diluar' ? 'active':null}}">
+				<i class="far fa-circle nav-icon"></i>
+				<p>Izin Absen Diluar</p>
+			</a>
+		</li>
 		@endPermission
 	
 	
@@ -173,7 +179,7 @@
 	</a>
 </li>
 @endPermission
-@Permission(['superadmin','hrd'])
+@Permission(['superadmin','hrd','owner'])
 <li class="nav-item item-sidebar">
 	<a href="{{route('penggajian')}}" class="nav-link {{Route::currentRouteName() == 'penggajian' ? 'active':null}}">
 		<i class="fas fa-user-tie mr-2  "></i>

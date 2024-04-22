@@ -11,82 +11,16 @@
                 <div class="alert alert-danger">{{ $message }}</div>
             @enderror
         </div>
-        <div class="col-md-3 col-sm-12">
-            <a href="#mk_penggajian" title="Tambah Penggajian" data-toggle="modal" data-target="#create-penggajian"
-                class="btn btn-primary btn-block"><i class="fas fa-plus mr-2"></i> Tambah Penggajian</a>
-            <hr>
-            <form action="{{ url('penggajian/save') }}" method="post">
-              @csrf
-                <div class="modal fade" id="create-penggajian" tabindex="-1" role="dialog"
-                    aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-                    <div class="modal-dialog modal-lg" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="exampleModalLongTitle">Tambah Penggajian Baru</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <label>Nama Penggajian</label>
-                                        <input type="text" required="" id="nama_penggajian"
-                                            placeholder="Penggajian Bulan Januari 2024" name="nama_penggajian" class="form-control">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label>Keterangan</label>
-                                        <input type="text" required="" id="keterangan" placeholder="cth: Semua Karyawan" name="keterangan" class="form-control">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="modal-footer">
-                                <button type="submit" class="btn btn-outline-primary" submit-button><i spinner
-                                        style="display: none;" class="fas fa-spinner fa-spin"></i> Simpan</button>
-                                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Tutup</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </form>
-            <form action="{{ url('penggajian/update') }}" method="post">
-              @csrf
-                <div class="modal fade" id="edit-penggajian" tabindex="-1" role="dialog"
-                    aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-                    <div class="modal-dialog modal-lg" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="exampleModalLongTitle">Ubah data Penggajian </h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                <div id="tampildata"></div>
-                            </div>
-
-                            <div class="modal-footer">
-                                <button type="submit" class="btn btn-outline-primary" submit-button-project><i spinner
-                                        style="display: none;" class="fas fa-spinner fa-spin"></i> Simpan</button>
-                                <button type="button" class="btn btn-outline-secondary"
-                                    data-dismiss="modal">Tutup</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </form>
-
-        </div>
-        
         <div class="col-12">
             <div class="table-responsive">
                 <table class="table  table-bordered table-hover" id="penggajianTable">
                     <thead>
                         <tr>
                           <th>No</th>
-                          <th>Nama Penggajian</th>
-                          <th>Keterangan</th>
+                          <th>NIP</th>
+                          <th>Nama Karyawan</th>
+                          <th>Alasan</th>
+                          <th>Status</th>
                           <th>#</th>
                         </tr>
                     </thead>
@@ -94,27 +28,26 @@
                       @php
                         $no = 1;   
                       @endphp
-                      @foreach ($penggajian as $item)
+                      @foreach ($data as $item)
                       <tr>
                         <td>{{ $no++ }}</td>
-                        <td>{{ $item->nama_penggajian }}</td>
-                        <td>{{ $item->keterangan }}</td>
+                        <td>{{ $item->nip }}</td>
+                        <td>{{ $item->nama_lengkap }}</td>
+                        <td>{{ $item->isi_pesan }}</td>
+                        <td>{{ $item->status ?? '-' }}</td>
                         <td>
-                            @if (auth()->user()->role_id !== 5)
-                          <button class="btn btn-info btn-sm" onclick="edit({{$item->id}})">
-                            <i class="fas fa-pencil-alt" id="icon-{{$item->id}}"></i>
-                          </button> 
-                          <a href="{{ url('penggajian/delete/'.$item->id) }}" class="btn btn-danger btn-sm">
-                            <i class="fas fa-trash-alt" id="icon-{{$item->id}}"></i>
-                          </a>
-                          @endif
-                          <a href="{{ url('penggajian/detail/'.$item->id) }}" class="btn btn-warning btn-sm">
-                            @if (auth()->user()->role_id == 5)
-                                Acc                                
+                            @if ($item->status !== null)
+                                <a href="{{ url('absen_diluar/batal/'.$item->id) }}" class="btn btn-danger btn-sm">
+                                    Batalkan Status
+                                </a>
                             @else
-                                Detail
+                                <a href="{{ url('absen_diluar/terima/'.$item->id) }}" class="btn btn-primary btn-sm">
+                                TERIMA
+                                </a>
+                                <a href="{{ url('absen_diluar/tolak/'.$item->id) }}" class="btn btn-danger btn-sm">
+                                    TOLAK
+                                  </a>
                             @endif
-                          </a>
                         </td>
                       </tr>
                       @endforeach
