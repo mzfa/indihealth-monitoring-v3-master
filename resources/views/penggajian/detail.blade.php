@@ -73,14 +73,14 @@
                 @if (auth()->user()->role_id == 5)
                     <div class="row">
                         <div class="col-6">
-                            <button onclick="return confirm('Apakah anda yakn datanya sudah benar?')" name="status" value="terima" type="submit" class="btn btn-primary btn-block">Terima</button>
+                            <button onclick="return confirm('Apakah anda yakin ingin menerima pengajuan ini?')" name="status" value="terima" type="submit" class="btn btn-primary btn-block">Terima</button>
                         </div>
                         <div class="col-6">
-                            <button onclick="return confirm('Apakah anda yakn datanya sudah benar?')" name="status" value="tolak" type="submit" class="btn btn-danger btn-block">Tolak</button>
+                            <button onclick="return confirm('Apakah anda yakin ingin menolak pengajuan ini?')" name="status" value="tolak" type="submit" class="btn btn-danger btn-block">Tolak</button>
                         </div>
                     </div>
                 @else
-                    <button onclick="return confirm('Apakah anda yakn datanya sudah benar?')"  type="submit" class="btn btn-primary btn-block">@if(!empty($item['penggajian_detail_id'])) Perbaiki @else Buat @endif Pengajuan</button>
+                    <button onclick="return confirm('Apakah anda yakin datanya sudah benar?')"  type="submit" class="btn btn-primary btn-block">@if(!empty($item['penggajian_detail_id'])) Perbaiki @else Buat @endif Pengajuan</button>
                 @endif
             </form>
         </div>

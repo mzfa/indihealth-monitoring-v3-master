@@ -1,5 +1,5 @@
 @extends('layouts/master_dashboard')
-@section('title', 'Kelola Penggajian')
+@section('title', 'Absensi dari luar lokasi')
 @section('content')
 
     <div class="row">

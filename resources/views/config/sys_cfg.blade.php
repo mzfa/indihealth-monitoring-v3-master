@@ -52,7 +52,7 @@
                 </div>
             </div>
             <div id="geofence-cfg" @if($data->status != 1) style="display:none;" @endif>
-                <div class="row">
+                {{-- <div class="row">
                     
                     <div class="col-md-6 col-xs-12">
                         <div class="custom-control custom-checkbox">
@@ -69,7 +69,9 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> --}}
+                <input type="hidden" value="{{ $data->radius_rumah }}" min="0" max="5000" id="radius_rumah" name="radius_rumah" class="form-control">
+                <input type="hidden" value="{{ $data->radius_rumah }}" min="0" max="5000" id="status_absen_dirumah" name="status_absen_dirumah" class="form-control">
                 <hr>
                 <div class="row">
                     <div class="col-md-12">
